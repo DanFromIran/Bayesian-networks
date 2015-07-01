@@ -1,0 +1,110 @@
+for this implementation of factors, I have chosen to use a data structure called factorEntry 
+which is an object holding onto two properties: 
+first property is the value assignment: ["a", "~b", "c"] (an array of strings) called ass (short of assignment)
+
+second property is a floating point number indicating the probability for example 0.05 called prob (short of probability)
+
+
+all of these factorEntry objects are grouped together in another dataStructure called Factor which has the following
+properties. 
+[ "A", "B", "C"] which is an array holding the variables in the Factor called variableList
+ as well as an array of factorEntry objects called entryList
+
+for normal Factors, the list of the Entries has the size 2^ size(variableList)
+
+
+function documentation:
+
+
+1.0: 
+makeFactor(arrayOfVariables, arrayOfValues)
+
+this function takes in an array of Variables (like A B C) and an array of probabilities 
+and makes a Factor Object out of it. note that the size of arrayofValues must be 2^ size of array of variables. 
+
+for example makeFactor([A,B] , [0.3, 0.2, 0.4, 0.1]) yields a Factor object as follows:
+ f.variableList = [A,B]
+f.entryList = [ {[a,b], 0.3} {[a,~b], 0.2} {[~a,b], 0.4} {[~a,~b], 0.1} ]
+where each curly brace is a factorEntry object
+
+
+1.1:
+ function makeFactorEntry(assign, prob)
+this function takes in an array of assignment as well as a floating point number to create a factorEntry
+for example makeFactorEntry([a, ~b, c], 0.8)
+
+1.2
+function findAllAssignments(ar)
+given an array, will create all true false combinations similar to binary numbers
+for example [a, b, c] yields [ [a,b,c] , [a,b,~c] , [a,~b,c] , [a,~b,~c] , [~a,b,c] , [~a,b,~c] , [~a,~b,c] , [~a,~b,~c]]
+
+1.3
+function printAssignmentArray(assignmentArray)
+
+given an array of assignment arrays like [ [a,b] , [a,~b] , [~a,b] , [~a,~b] ] will print the contents.
+
+1.4
+function printFactor(factor)  
+self explanatory!  prints in the format { [A, B]  {[a, b], 0.8} {[a, ~b], 0.2}...}
+
+1.5
+function findIntersection(ar1, ar2)
+will return an array containing only the elements that are present in both ar1 and ar2
+
+1.6
+function exists(ar, val) returns true if value val exists in array r, returns false otherwise
+
+
+1.7
+function findUnion(ar1,ar2)
+given two arrays holding strings, will find the union array
+
+
+1.8
+function filterEntries (arrayOfFactorEntries, assignmentArray)
+will return an array of factor entries that have the assignmentArray as a subset. 
+
+1.9
+function isSubset(sub,supers) 
+returns true if array sub is a subset of array supers
+for example isSubset ([1,2] , [1,5,2]) returns true but ([1,3] , [1,5,2]) returns false
+
+
+
+2.0
+function crossMultiply (ar1, ar2)
+given two arrays each holding factor entries, it will return an array containing the cross multiplication of 
+the factor entries. 
+
+2.1
+function multiply (f1,f2) will multiply 2 factors
+important: if one of the factors contains only 1 scalar value, (a factor of 1 varible being restricted)
+then we should do scalar multiplication. 
+
+2.2
+function sumout (f, v) will sum out variable v from factor f
+
+
+2.3 
+function setEquality(ar1, ar2) 
+will return true iff ar1 and ar2 have the same elements irrespective of order
+
+
+
+2.4
+function restrict(factor, variable, value) restricts a variable to the given value
+important: if factor has only 1 variable, then function has to return a special factor with 
+an empty variable list and one entry with empty assignment and one probability. 
+
+
+2.5
+function normalize(factor) divides all the probabilities in the factor by the sum
+
+2.6
+function multiplyAll(ar)
+multiplies an entire array of factors together that have some variable in common. 
+
+2.7
+function inference(factorList, queryList, orderOfElimination, evidences)
+given the factorList, it will restrict all variables in evidences, then eliminate variables according to array
+orderOfElimination.

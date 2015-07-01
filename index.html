@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+	<script>
+
+    function makeFactorEntry(assignment, probability)
+    {
+    	var factorEntry = new Object();
+    	factorEntry.ass = assignment; 
+    	factorEntry.prob = probability; 
+    	return factorEntry; 
+    }
+	function makeFactor(arrayOfVariables, arrayOfValues)
+	{ 
+		var Factor = new Object();
+		Factor.variableList = arrayOfVariables.slice(); 
+		//use the slice method just so if arrayOfVariables was messed around with outside, we are unaffected
+		Factor.entryList =[];
+		var workingArray = arrayOfVariables.slice();
+		for(i=0;i<workingArray.length; i++) workingArray[i] = workingArray[i].toLowerCase();
+
+		var allAssignments=findAllAssignments(workingArray);
+
+		
+
+
+		for(i=0; i<allAssignments.length; i++)
+		{
+		var tmpEntry = makeFactorEntry(allAssignments[i],arrayOfValues[i])
+		Factor.entryList.push(tmpEntry);
+
+		}
+
+	return Factor;
+	}
+    
+    function findAllAssignments(ar)
+    {
+    	
+
+    	if (ar.length==0) 
+    		{
+    			return null;
+    		}
+    	else
+    	{
+    		var x = ar.pop();
+    		var negX = "~"+x;
+    		var result=[];
+    		var tempAr = findAllAssignments(ar); //notice one variable is popped
+
+    			if (tempAr==null)
+    			{
+    				
+    			    result = [[x],[negX]];
+    				return result;
+    			}
+
+    		for (i=0; i<tempAr.length; i++)
+    		{
+    			tempAr[i].push(x); 
+    			result.push(tempAr[i].slice());
+    			tempAr[i].pop();
+    			tempAr[i].push(negX);
+    			result.push(tempAr[i].slice());
+    		}
+    		return result;
+    	}
+
+    }
+
+
+	function printAssignmentArray(assignmentArray)
+	{
+
+		document.write("[ ");
+		 for (i=0; i<assignmentArray.length; i++)
+		 {
+		 	document.write("[");
+		 	for(j=0; j<assignmentArray[i].length; j++)
+		 	{
+		 		document.write(assignmentArray[i][j]);
+		 		if(j!=assignmentArray[i].length-1) document.write(",");
+		 	}
+		 	document.write("] ");
+		 	
+		 }
+		 document.write("]");
+	}
+
+	function changeContent()
+	{
+		document.getElementById("demo").innerHTML = "hello";
+	}
+
+    function printFactorEntry(fe)
+    {
+    	document.write("{[");
+    	var x;
+    	for (x=0; x<fe.ass.length ; x++) 
+    	{
+    		document.write(fe.ass[x]);
+    		if(x!=fe.ass.length-1) document.write(" ");
+    	}
+    	document.write("] ");
+    	document.write(fe.prob);
+    	document.write("} ");
+    }
+
+
+    function printFactor(f)
+    {
+    	document.write("{ [");
+    	for (var i=0; i<f.variableList.length ; i++)
+    		{ 
+    			document.write(f.variableList[i]);
+    			if(i!= f.variableList.length-1) document.write(" ");
+    		}
+    		document.write("] ");
+    		for (var i=0; i<f.entryList.length ; i++)
+    		{ 
+    			printFactorEntry(f.entryList[i]);
+    			document.write(" ");
+    		}
+    document.write("}");
+    document.write("<br>");
+    }
+
+    function findIntersection(ar1,ar2) //to be used only with arrays containing strings
+    {
+    	var result =[];
+
+    	for(var i=0;i<ar1.length;i++)
+    	{ 
+         var tmp = exists(ar2,ar1[i]);
+    		if( tmp )
+    		{  
+    			var tmp = ar1[i];
+    			result.push(tmp);
+    		}
+    	}
+    	return result;
+    }
+
+    function findUnion(ar1,ar2)
+    {
+    	var result=[];
+    	for(var i=0;  i<ar1.length; i++)
+    	{
+    		var tmp = ar1[i];
+    		result.push(tmp);
+    	}
+
+    	for (var i=0; i<ar2.length; i++)
+    	{
+    		if(!exists(result, ar2[i]))
+    		{
+    			var tmp = ar2[i];
+    			result.push(tmp);
+    		}
+    	}
+    	return result;
+
+    }
+
+    function exists(ar, val)
+    {
+    	for(var i=0;i<ar.length; i++)
+    	{
+    		if(ar[i]==val) return true;
+    	}
+    	return false;
+    }
+
+    function isSubset(sub, supers)
+    {
+    	for(var i=0;i<sub.length; i++)
+    	{
+    		if(!exists(supers, sub[i])) return false;
+
+    	}
+    	return true;
+    }
+    
+
+    function filterFactorEntries(arrayofEntries, arrayOfSubset)//make sure arrays are sliced when passed in
+    {
+    	var result =[]; //array of Entries to be sent out
+    	var numberOfEntries =arrayofEntries.length; 
+    	for(var i=0; i<numberOfEntries ; i++)
+    	{
+    		
+    		var assignmentArray = arrayofEntries[i].ass.slice();
+    		//var tmp = makeFactorEntry(arrayofEntries[i].ass ,arrayofEntries[i].prob );
+    		if( isSubset (arrayOfSubset ,assignmentArray) )
+    		{
+    			result.push(arrayofEntries[i]);
+    		}
+
+    	}
+    	return result;
+    }
+    
+    function crossMultiply(ar1, ar2) //make sure we slice arrays before passing
+    {
+    	//ar1 and ar2 are arrays of factorEntries
+    	var result =[];
+
+    	for(var i=0; i<ar1.length ; i++)
+    	{
+    		
+    		for (var j=0; j<ar2.length; j++)
+    		{
+
+    			var firstAs = ar1[i].ass.slice();
+    			var secondAs = ar2[j].ass.slice();
+		
+
+    			var uni= findUnion (firstAs,secondAs);
+    			
+    			var crosProb = ar1[i].prob * ar2[j].prob ; 
+
+    			
+    			var tmpEntry= makeFactorEntry(uni , Number(crosProb));
+    			
+    			result.push(tmpEntry);
+
+    		}
+
+    	}
+    	return result; 
+    }
+
+
+    function multiply(f1, f2)
+    {
+    var enList1=f1.entryList; //maybe slice these?
+    var enList2=f2.entryList;
+    var ll1 = f1.variableList.slice();
+    var ll2 =f2.variableList.slice();
+    var container=[];
+    var result = new Object();
+    var tmpEntry;
+    var scalarProb;//used unly under special case
+
+    //special case: f1 or f2 or both is a scalar
+    if(ll1.length == 0)
+    {
+    	
+    		if(ll2.length==0) //both are scalars
+    		{
+    			result.variableList = [];
+    			scalarProb = enList1[0].prob * enList2[0].prob ;
+    			tmpEntry = makeFactorEntry([],scalarProb);
+    			container.push(tmpEntry);
+    			result.entryList = container;
+    			return result;
+    		}
+    //only f1 is scalar
+    scalarProb = enList1[0].prob; 
+
+    	for (var i=0; i<enList2.length; i++)
+    	{
+    		var newProb = (enList2[i].prob * scalarProb) ;
+    		tmpEntry = makeFactorEntry(enList2[i].ass, newProb);
+    		container.push(tmpEntry);
+    	}
+
+    result.variableList = ll2; 
+    result.entryList=container;
+    return result; 
+    }
+    else if(ll2.length==0) //only f2 is scalar
+    {
+    	scalarProb = enList2[0].prob; 
+    	for (var i=0; i<enList1.length; i++)
+    	{
+    		var newProb = (enList1[i].prob * scalarProb);
+    		tmpEntry = makeFactorEntry(enList1[i].ass, newProb);
+    		container.push(tmpEntry);
+    	}
+
+    result.variableList = ll1; 
+    result.entryList=container;
+    return result; 
+    }
+
+    var resultVars = findUnion(ll1, ll2);
+    result.variableList = resultVars;
+
+    var commonVars= findIntersection(f1.variableList.slice(), f2.variableList.slice());
+
+
+    for (var i=0; i<commonVars.length ; i++) commonVars[i]= commonVars[i].toLowerCase();
+    	var kambiz= findAllAssignments(commonVars);
+
+
+
+    	for(var i=0; i<kambiz.length; i++)
+    	{
+    		var filtered1=filterFactorEntries(enList1,kambiz[i]);
+    		var filtered2=filterFactorEntries(enList2,kambiz[i]);
+    		var resultEntriesPartial=crossMultiply(filtered1,filtered2);
+
+    		for(var j=0; j<resultEntriesPartial.length ; j++) container.push(resultEntriesPartial[j]);
+
+    	}
+
+    result.entryList = container;
+    return result;
+    }
+
+    function sumout(f, v)
+    {
+    	var enList1 = f.entryList.slice();
+
+    	var varis = f.variableList.slice();
+
+    	//v must be in f's variableList
+    	var newVarList =[];
+    	for(var i=0; i<varis.length; i++)
+    	{ 
+    		if(varis[i] != v)  newVarList.push(varis[i])
+    	}
+
+    	var newEntryList = [];
+
+    	//remove all vs from assingments
+
+    	for (var i=0; i<enList1.length ; i++) //loop through entries
+    	{
+    		var vTakenOut = [];
+    		var pos = v.toLowerCase();
+    		var neg = "~" + v.toLowerCase(); 
+
+    		for(var j=0; j<enList1[i].ass.length; j++) //loop through entry assignment
+    		{
+
+    			if( (enList1[i].ass[j] != pos) && (enList1[i].ass[j] != neg) )
+    			{
+    				vTakenOut.push(enList1[i].ass[j]);
+    			}
+    			
+    		}
+    		var newEntry = makeFactorEntry(vTakenOut, enList1[i].prob);
+    		newEntryList.push(newEntry);
+
+    	
+    	}
+
+    	//now we need to add up duplicates
+    	var summedEntryList = [];
+    	var summedAlready =[]; //indicates if the entry has already been accounted for
+    	for(var i=0; i<newEntryList.length ; i++) summedAlready.push(false);
+
+    	for(var i=0; i<newEntryList.length ; i++ )
+    	{   
+    		if(summedAlready[i]) continue;
+
+    		var sum = newEntryList[i].prob; 
+    		summedAlready[i] = true; //this line probably not necessary
+
+    		for(var j=i+1; j<newEntryList.length ; j++)
+    		{
+    			if(summedAlready[j]) continue;
+
+    				if(setEquality(newEntryList[i].ass.slice(),newEntryList[j].ass.slice()))
+    				{
+    					sum+=newEntryList[j].prob;
+    					summedAlready[j] = true;
+    				}
+    		}
+    		//sum = Math.round(sum*10000)/10000;
+    		var fixedEntry = makeFactorEntry(newEntryList[i].ass.slice(), sum);
+    		summedEntryList.push(fixedEntry);
+
+    	}
+    	var result = new Object();
+    	result.variableList = newVarList;
+    	result.entryList = summedEntryList;
+    	return result;
+
+    }
+
+    function setEquality(ar1, ar2)
+    {  
+    	if(ar1.length != ar2.length) return false;
+
+    	for(var i=0; i<ar1.length; i++) 
+    	{	
+    		if(! exists(ar2.slice(), ar1[i])) return false;
+    	}
+    	return true;
+    }
+
+    function restrict(f1, vari, valu)
+    {	
+
+
+
+    	var newVarList = [];
+    	var enList1 = f1.entryList.slice();
+    	var vvList = f1.variableList.slice();
+
+    	if(!exists(vvList, vari)) return f1; // if nothing is to be restricted, dont do anything
+
+    	var enList2 = [];
+    	
+    	for(var i=0; i<vvList.length  ; i++) //push everything except the variable we are restricting
+    	{
+    		if(vvList[i] != vari) newVarList.push(vvList[i]);
+    		
+    	}
+
+    	for(var i=0; i<enList1.length; i++) //only push values that have the value in their assignment
+    	{
+
+    		if( exists(enList1[i].ass, valu))
+    		{
+    			var tmpAss=[];
+    				for(var j=0; j<enList1[i].ass.length; j++)
+    				{
+    					if(enList1[i].ass[j] != valu) tmpAss.push(enList1[i].ass[j]);
+    				}
+
+    			var tmpEntry =makeFactorEntry(tmpAss,enList1[i].prob);
+    			enList2.push(tmpEntry);
+    		}
+
+    	}
+    	var result = new Object();
+    	result.entryList = enList2;
+    	result.variableList= newVarList;
+    	return result; 
+    }
+
+    function normalize(f1)
+    {
+    	var enList1 = f1.entryList.slice();
+    	var sum=0;
+
+    	for( var i=0; i<enList1.length; i++)
+    	{
+    		sum = sum + enList1[i].prob;
+    	}
+
+    	var enList2 = [];
+
+    	for(var i=0; i<enList1.length; i++)
+    	{
+    		var newProb = enList1[i].prob/sum;
+    		
+
+    		var newEntry = makeFactorEntry(enList1[i].ass.slice(), newProb);
+    		enList2.push(newEntry);
+
+    	}
+    	var result = new Object();
+    	result.variableList = f1.variableList.slice();
+    	result.entryList= enList2;
+    	return result; 
+
+    }
+
+
+    function inference(factorList, queryList, orderOfElimination, evidences)
+    {
+    	//evidences is an array of variables and value pairs
+    	//eg: [ ["A", "~a"], ["B", "b"]]
+  	
+    	var fList1 = factorList.slice();
+
+    	var fList2 = [];
+
+    	for(var i=0; i<evidences.length ; i++)
+    	{
+
+    		var restrictionVariable = evidences[i][0];
+    		var restrictionValue = evidences[i][1];
+    		
+    			for(var j=0; j<fList1.length; j++)
+    			{
+    				var tmpFactor = restrict(fList1[j],restrictionVariable,restrictionValue);
+    				fList2.push(tmpFactor);
+    			}
+    			fList1=fList2.slice();
+    			fList2 = [];
+
+    	}
+
+    	var fList3 =[];
+    	//at this point fList1 has the list of factors with the evidences restricted. 
+    	//we need to filter out factors with no variable list because those will get normalized anyway and 
+    	//they will cause a problem with multiplication 
+
+    	for(var i=0; i<fList1.length ; i++)
+    	{
+    		if(fList1[i].variableList.length != 0) fList3.push(fList1[i]);
+    	}
+    	fList1=fList3;
+    	fList3=[];
+
+    	
+    	for(var i=0; i<orderOfElimination.length; i++)
+    	{
+    		document.write("eliminiation of:" + orderOfElimination[i] +" <br>");
+    		for(var j=0; j<fList1.length ; j++)
+    		{
+	    		if(exists (fList1[j].variableList, orderOfElimination[i]))
+	    		{
+	    			fList2.push(fList1[j]);
+	    		}
+	    		else
+	    		{
+	    			fList3.push(fList1[j]);
+	    		}
+    		}
+    		document.write("all factors: <br>");
+    		for(var tt in fList1) printFactor(fList1[tt]);
+
+    		document.write("factors to multiply and sum "+ orderOfElimination[i]+  " out: <br>");
+    		for(var tt in fList2) printFactor(fList2[tt]);
+    		
+
+    		var toSumOut = multiplyAll(fList2);
+    		toSumOut = sumout(toSumOut, orderOfElimination[i]);
+
+
+    		fList3.push(toSumOut);
+    		document.write("factors we are left with after elimination: <br>");
+    		for(var tt in fList3) printFactor(fList3[tt]);
+    		
+    		//now we gotta get ready for the next iteration of the loop
+
+    		fList1 = fList3.slice(); 
+    		fList3 =[];
+    		fList2 = []; 
+		document.write(" <br><br>");
+    	}
+	//now if all is done correctly, 
+	//fList1 should only posses 1 factor and we should normalize and return that factor
+    	
+    	if(fList1.length != 1)
+    	{
+    		alert ("bad query to inference function?");
+    		alert(fList1.length);
+    	} 
+
+
+
+    	return normalize(multiplyAll(fList1));
+
+    }
+
+    function multiplyAll(ar)
+    {
+    	if (ar.length==0) //this should never happen
+    		{
+    			alert("invalid input to multiplyAll");
+    			return null;
+    		}
+    	if(ar.length==1) return ar[0];
+    	
+    	var frst= ar.pop();
+    	var scnd = multiplyAll(ar); //with one value popped; 
+
+    	var result =  multiply(frst, scnd);
+    	
+    	return result;
+    }
+
+    var f1 = makeFactor(["TRAVEL" ], [0.05,0.95]);
+    var f2 = makeFactor(["OC"], [0.75,0.25]);
+    var f3 = makeFactor(["CRP" , "OC"], [0.1, 0.001, 0.9, 0.999]);
+    var f4 = makeFactor(["FRAUD" , "TRAVEL"], [0.01, 0.004, 0.99, 0.996]);
+    var f5 = makeFactor(["FP" , "FRAUD" , "TRAVEL"], [0.9, 0.1, 0.9, 0.01, 0.1, 0.9, 0.1, 0.99]);
+    var f6 = makeFactor(["IP" , "FRAUD" , "OC"], [0.02, 0.011, 0.01, 0.001, 0.98, 0.989, 0.99, 0.999]);
+    
+  
+
+    var fList =[];
+    fList.push(f1);
+    fList.push(f2);
+    fList.push(f3);
+    fList.push(f4);
+    fList.push(f5);
+    fList.push(f6);
+ 
+
+ 	// for(var i=0; i<fList.length; i++) printFactor(fList[i]);
+
+ 	 document.write("<br>");
+
+    var emptyList = [];
+
+   // var evid = [["FP",'fp'],["IP",'~ip'],["CRP",'crp'], ["TRAVEL" , 'travel']];
+   // var query = inference(fList, emptyList, [ "OC"], evid);
+ 	
+ 	var evid = [["TRAVEL","~travel"],["CRP" , "crp"],["IP",'ip']];
+    var query = inference(fList, emptyList, [ "FP", "OC" ], evid);
+  
+    document.write("got the query");
+ 
+    printFactor(query);
+
+
+
+
+   
+
+ 
+	</script>
+
+
+</head>
+    <body>
+
+	<p id="demo" onclick="changeContent()"> Content</p>
+		
+	</body>
+</html>
+
+
+
